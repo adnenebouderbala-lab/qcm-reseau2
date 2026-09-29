@@ -367,10 +367,11 @@ function finishQuiz() {
 }
 
 function sendToSheets(r) {
+  const errs = r.questions.map((q,i) => ({n:i+1, theme:q.theme, q:q.q, donne:(r.answers[i]||{}).selected||'', donneTxt:q.opts[LETTERS.indexOf((r.answers[i]||{}).selected)]||'—', bonne:q.ans, bonneTxt:q.opts[LETTERS.indexOf(q.ans)]})).filter((e,i) => !(r.answers[i]&&r.answers[i].isCorrect));
   const ts = {};
   r.questions.forEach((q,i) => { if(!ts[q.theme]) ts[q.theme]={t:0,c:0}; ts[q.theme].t++; if(r.answers[i]&&r.answers[i].isCorrect) ts[q.theme].c++; });
   const detail = Object.entries(ts).map(([k,v])=>`${k}: ${v.c}/${v.t}`).join(' | ');
-  fetch(GOOGLE_SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify({nom:r.name, date:r.date, score_pct:r.pct, correct:r.correct, total:r.total, statut:isPass(r)?'Validé':'À reprendre', reseau:'R2', partie_a:r.partA, partie_b:r.partB, detail_modules:'R2 | Partie A: '+r.partA+'/40 | Partie B prix: '+r.partB+'/10 | '+detail}) }).catch(e=>console.warn(e));
+  fetch(GOOGLE_SCRIPT_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify({nom:r.name, date:r.date, score_pct:r.pct, correct:r.correct, total:r.total, statut:isPass(r)?'Validé':'À reprendre', reseau:'R2', erreurs:errs, partie_a:r.partA, partie_b:r.partB, detail_modules:'R2 | Partie A: '+r.partA+'/40 | Partie B prix: '+r.partB+'/10 | '+detail}) }).catch(e=>console.warn(e));
 }
 
 function showAdminLogin() { document.getElementById('login-modal').classList.add('open'); setTimeout(()=>document.getElementById('login-pwd').focus(),100); }
